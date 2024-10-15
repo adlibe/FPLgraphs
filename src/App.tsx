@@ -1,29 +1,64 @@
-import { FormEvent, useState } from 'react';
-import './App.css'
+import { FormEvent, useEffect, useState } from 'react';
+import './App.css';
+
+type resultProps = {
+  name: string;
+  teamName: string;
+};
 
 export default function App() {
   const [submitted, setSubmitted] = useState(false);
+  const [inputId, setInputId] = useState<string>('');
+  const [result, setResult] = useState<resultProps | null>(null);
 
   function handleform(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const formJson = Object.fromEntries(formData.entries());
-    console.log(formJson);
 
+    const id = formJson.idform as string;
+    setInputId(id);
     setSubmitted(true);
   }
+
+  useEffect(() => {
+    if (submitted && inputId) {
+      const fetchData = async () => {
+        const response = await fetch(`https://fantasy.premierleague.com/api/entry/${inputId}/`);
+        const data = await response.json();
+
+        setResult({
+          name: `${data.player_first_name} ${data.player_last_name}`,
+          teamName: data.name,
+        });
+      };
+
+      fetchData();
+    }
+  }, [submitted, inputId]);
+
   return (
     <>
       <h1 className={submitted ? 'header-move' : ''}>FPLgraphs</h1>
       {!submitted && (
-      <form method="post" onSubmit={handleform}>
-        <label>
-          Your FPL team ID: <input type="text" name="idform" />
-        </label>
-        <button type="submit">Submit ID</button>
-      </form>
-    )}
+        <form method="post" name="idInput" onSubmit={handleform}>
+          <label>
+            Your FPL team ID: <input type="text" name="idform" />
+          </label>
+          <button type="submit">Submit ID</button>
+        </form>
+      )}
+
+      {submitted && result && (
+        <div>
+          <h2>Team Data</h2>
+          <p>Team Name: {result.teamName}</p>
+          <p>Manager: {result.name}</p>
+        </div>
+      )}
     </>
-  )
+  );
 }
 
+// Download the Moesif CORS chrome extension to make the API calls go through
+// https://chromewebstore.google.com/detail/moesif-origincors-changer/digfbfaphojjndkpccljibejjbppifbc?pli=1 
