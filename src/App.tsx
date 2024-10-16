@@ -1,21 +1,28 @@
 import { FormEvent, useEffect, useState } from 'react';
 import './App.css';
+import axios from 'axios';
+import BarChartComponent from './components/BarChartComponent';
 
 type resultProps = {
   name: string;
   teamName: string;
 };
 
+interface ChartData {
+  season_name: string;
+  rank: number;
+}
+
 export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [inputId, setInputId] = useState<string>('');
   const [result, setResult] = useState<resultProps | null>(null);
+  const [data, setData] = useState<ChartData[]>([]);
 
   function handleform(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const formJson = Object.fromEntries(formData.entries());
-
     const id = formJson.idform as string;
     setInputId(id);
     setSubmitted(true);
@@ -37,6 +44,15 @@ export default function App() {
     }
   }, [submitted, inputId]);
 
+
+  useEffect(() => {
+    if (inputId) {
+      axios.get(`https://fantasy.premierleague.com/api/entry/${inputId}/history/`).then((response) => {
+        setData(response.data.past);
+      });
+    }
+  }, [inputId]);
+
   return (
     <>
       <h1 className={submitted ? 'header-move' : ''}>FPLgraphs</h1>
@@ -51,14 +67,20 @@ export default function App() {
 
       {submitted && result && (
         <div>
-          <h2>Team Data</h2>
-          <p>Team Name: {result.teamName}</p>
           <p>Manager: {result.name}</p>
+          <p>Team Name: {result.teamName}</p>
+        </div>
+      )}
+
+      {submitted && data.length > 0 && (
+        <div className="chart-container">
+          <BarChartComponent data={data} xAxisKey="season_name" yAxisKey="rank" />
         </div>
       )}
     </>
   );
 }
+
 
 // Download the Moesif CORS chrome extension to make the API calls go through
 // https://chromewebstore.google.com/detail/moesif-origincors-changer/digfbfaphojjndkpccljibejjbppifbc?pli=1 
