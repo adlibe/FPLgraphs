@@ -8,16 +8,24 @@ type resultProps = {
   teamName: string;
 };
 
-interface ChartData {
+interface RankChartData {
   season_name: string;
   rank: number;
+}
+
+interface PointChartData {
+  season_name: string;
+  points: number;
 }
 
 export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [inputId, setInputId] = useState<string>('');
   const [result, setResult] = useState<resultProps | null>(null);
-  const [data, setData] = useState<ChartData[]>([]);
+  const [rankData, setRankData] = useState<RankChartData[]>([]);
+  const [pointData, setPointData] = useState<PointChartData[]>([]);
+  const [chartNum, setChartNum] = useState(1);
+
 
   
   function handleform(e: FormEvent<HTMLFormElement>) {
@@ -28,6 +36,15 @@ export default function App() {
     setInputId(id);
     setSubmitted(true);
   }
+
+  function handleNext() {
+    setChartNum((prevChartNum) => prevChartNum + 1);
+  }
+
+  function handlePrevious() {
+    setChartNum((prevChartNum) => prevChartNum - 1);
+  }
+  
 
   useEffect(() => {
     if (submitted && inputId) {
@@ -49,7 +66,15 @@ export default function App() {
   useEffect(() => {
     if (inputId) {
       axios.get(`https://fantasy.premierleague.com/api/entry/${inputId}/history/`).then((response) => {
-        setData(response.data.past);
+        setRankData(response.data.past);
+      });
+    }
+  }, [inputId]);
+
+  useEffect(() => {
+    if (inputId) {
+      axios.get(`https://fantasy.premierleague.com/api/entry/${inputId}/history/`).then((response) => {
+        setPointData(response.data.past);
       });
     }
   }, [inputId]);
@@ -73,11 +98,21 @@ export default function App() {
         </div>
       )}
 
-      {submitted && data.length > 0 && (
+      {submitted && rankData.length > 0 && chartNum == 1 && (
         <div className="chart-container">
-          <BarChartComponent data={data} xAxisKey="season_name" yAxisKey="rank" />
+          <BarChartComponent data={rankData} xAxisKey="season_name" yAxisKey="rank" />
         </div>
       )}
+
+      {submitted && rankData.length > 0 && chartNum == 2 && (
+        <div className="chart-container">
+          <BarChartComponent data={pointData} xAxisKey="season_name" yAxisKey="total_points" />
+        </div>
+      )}
+
+      {submitted &&
+      <><button type="button" onClick={handlePrevious}>&lt;</button><button type="button" onClick={handleNext}>&gt;</button></>
+      }
     </>
   );
 }
