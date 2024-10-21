@@ -8,26 +8,19 @@ type resultProps = {
   teamName: string;
 };
 
-interface RankChartData {
-  season_name: string;
-  rank: number;
+interface ChartData {
+  [key: string]: any;
 }
 
-interface PointChartData {
-  season_name: string;
-  points: number;
-}
 
 export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [inputId, setInputId] = useState<string>('');
   const [result, setResult] = useState<resultProps | null>(null);
-  const [rankData, setRankData] = useState<RankChartData[]>([]);
-  const [pointData, setPointData] = useState<PointChartData[]>([]);
+  const [alltimeData, setAlltimeData] = useState<ChartData[]>([]);
+  const [currentData, setCurrentData] = useState<ChartData[]>([]);
   const [chartNum, setChartNum] = useState(1);
 
-
-  
   function handleform(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -44,7 +37,6 @@ export default function App() {
   function handlePrevious() {
     setChartNum((prevChartNum) => prevChartNum - 1);
   }
-  
 
   useEffect(() => {
     if (submitted && inputId) {
@@ -62,19 +54,23 @@ export default function App() {
     }
   }, [submitted, inputId]);
 
-
   useEffect(() => {
     if (inputId) {
       axios.get(`https://fantasy.premierleague.com/api/entry/${inputId}/history/`).then((response) => {
-        setRankData(response.data.past);
-      });
-    }
-  }, [inputId]);
+        const alltimeData = response.data.past.map((season: any) => ({
+          season_name: season.season_name,
+          rank: season.rank,
+          points: season.total_points,
+        }));
 
-  useEffect(() => {
-    if (inputId) {
-      axios.get(`https://fantasy.premierleague.com/api/entry/${inputId}/history/`).then((response) => {
-        setPointData(response.data.past);
+        const currentData = response.data.current.map((event: any) => ({
+          event: event.event,
+          overall_rank: event.overall_rank,
+          rank: event.rank,
+        }));
+
+        setAlltimeData(alltimeData);
+        setCurrentData(currentData);
       });
     }
   }, [inputId]);
@@ -98,25 +94,33 @@ export default function App() {
         </div>
       )}
 
-      {submitted && rankData.length > 0 && chartNum == 1 && (
+      {submitted && alltimeData.length > 0 && chartNum === 1 && (
         <div className="chart-container">
-          <BarChartComponent data={rankData} xAxisKey="season_name" yAxisKey="rank" />
+          <BarChartComponent data={alltimeData} xAxisKey="season_name" yAxisKey="rank" />
         </div>
       )}
 
-      {submitted && rankData.length > 0 && chartNum == 2 && (
+      {submitted && alltimeData.length > 0 && chartNum === 2 && (
         <div className="chart-container">
-          <BarChartComponent data={pointData} xAxisKey="season_name" yAxisKey="total_points" />
+          <BarChartComponent data={alltimeData} xAxisKey="season_name" yAxisKey="points" />
         </div>
       )}
 
-      {submitted &&
-      <><button type="button" onClick={handlePrevious}>&lt;</button><button type="button" onClick={handleNext}>&gt;</button></>
-      }
+      {submitted && currentData.length > 0 && chartNum === 3 && (
+        <div className="chart-container">
+          <BarChartComponent data={currentData} xAxisKey="event" yAxisKey="overall_rank" />
+        </div>
+      )}
+
+      {submitted && (
+        <>
+          <button type="button" onClick={handlePrevious}>&lt;</button>
+          <button type="button" onClick={handleNext}>&gt;</button>
+        </>
+      )}
     </>
   );
 }
-
 
 // Download the Moesif CORS chrome extension to make the API calls go through
 // https://chromewebstore.google.com/detail/moesif-origincors-changer/digfbfaphojjndkpccljibejjbppifbc?pli=1 
