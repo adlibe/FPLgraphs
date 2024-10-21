@@ -19,10 +19,11 @@ h1 {
 }
 
 .chart-container {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: auto;
+  max-width: 800px;
   padding: 20px;
+  margin: 0 auto;
+  text-align: center;
 }
+
+

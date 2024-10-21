@@ -19,6 +19,7 @@ export default function App() {
   const [result, setResult] = useState<resultProps | null>(null);
   const [data, setData] = useState<ChartData[]>([]);
 
+  
   function handleform(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -68,7 +69,7 @@ export default function App() {
       {submitted && result && (
         <div>
           <p>Manager: {result.name}</p>
-          <p>Team Name: {result.teamName}</p>
+          <p>Team: {result.teamName}</p>
         </div>
       )}
 

@@ -11,18 +11,18 @@ const BarChartComponent: React.FC<BarChartComponentProps> = ({ data, xAxisKey, y
   if (!data || data.length === 0) return null;
 
   return (
-    <div style={{ width: '800px', height: '400px' }}>
+    <div style={{ width: '800px', height: '500px' }}>
       <BarChart
         width={800}
-        height={400}
+        height={500}
         data={data}
-        margin={{ top: 20, right: 30, left: 50, bottom: 40 }}
+        margin={{ top: 20, right: 40, left: 40, bottom: 40 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xAxisKey} interval={0} angle={-45} textAnchor="end" />
         <YAxis />
         <Tooltip />
-        <Legend />
+        <Legend verticalAlign="bottom" align="center" wrapperStyle={{paddingTop: '30px', }}/>
         <Bar dataKey={yAxisKey} fill="#8884d8" />
       </BarChart>
     </div>
